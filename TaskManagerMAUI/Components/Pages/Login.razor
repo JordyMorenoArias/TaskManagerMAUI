@@ -1,0 +1,83 @@
+﻿@using System.Text
+@using System.Net.Http.Headers
+@using TaskManagerMAUI.Models
+@using TaskManagerMAUI.Models.Login
+@using Task = System.Threading.Tasks.Task
+@inject NavigationManager Navigation
+
+@page "/"
+
+<PageTitle>Login</PageTitle>
+
+<div class="login-container">
+    <h1 class="login-title">SIGN IN</h1>
+
+    <EditForm Model="@loginModel" OnValidSubmit="@Authenticate">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label for="email" class="form-label">Email address</label>
+            <input type="email" id="email" class="form-input" @bind-value="loginModel.Email" placeholder="Email" required />
+        </div>
+
+        <div class="form-group password-container">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" id="password" class="form-input" @bind-value="loginModel.Password" placeholder="Password" required />
+        </div>
+
+        <button type="submit" class="login-button">LOGIN IN</button>
+    </EditForm>
+
+    <div class="create-account">
+        <a href="/Register">CREATE ACCOUNT</a>
+    </div>
+</div>
+
+
+@code {
+    private LoginModelViewData loginModel = new LoginModelViewData();
+
+    private async Task Authenticate()
+    {
+        string url = "https://taskmanagerapi-byjordy.somee.com/api/User/login";
+
+        try
+        {
+            var json = JsonConvert.SerializeObject(loginModel);
+
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await client.PostAsync(url, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var tokenResponse = JsonConvert.DeserializeObject<TokenResponse>(responseContent);
+
+                    if (tokenResponse != null)
+                    {
+                        Environment.SetEnvironmentVariable("API_TOKEN", tokenResponse.Token);
+
+                        Navigation.NavigateTo("/Home");
+                    }
+                    else
+                    {
+						Console.WriteLine("Invalid credentials: ", responseContent);
+                    }
+                }
+            }
+        }
+		catch (HttpRequestException ex)
+		{
+			Console.WriteLine(ex.Message);
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex.Message);
+		}
+	}
+}
