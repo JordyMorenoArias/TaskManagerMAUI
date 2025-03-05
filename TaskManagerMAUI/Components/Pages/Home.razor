@@ -1,0 +1,141 @@
+﻿@using System.Net.Http;
+@using System.Net.Http.Headers
+@using System.Text.Json;
+@using System.Text.Json.Serialization;
+@using Newtonsoft.Json;
+@using TaskManagerMAUI.Models
+@using TaskManagerMAUI.Models.Home
+@using TaskManagerMaui.Constants
+@using Task = System.Threading.Tasks.Task
+@inject NavigationManager Navigation
+
+@page "/Home"
+
+<div class="home-container">
+
+    <div class="container-btn-create">
+        <button class="create-btn">
+            <span class="plus">+</span> CREATE
+        </button>
+    </div>
+
+    <div>
+        @if (homeModel.Tasks?.Count() != 0 || homeModel is not null)
+        {
+            @foreach (var task in homeModel.Tasks!)
+            {
+                <div class="task-card">
+                    <div class="task-header">
+                        <h3>@task.Title</h3>
+                        <span style="display: none;">@task.Id</span>
+                        @if (task.Priority == Priority.High)
+                        {
+                            <span class="task-badge-High">3</span>
+                        }
+                        else if (task.Priority == Priority.Medium)
+                        {
+                            <span class="task-badge-medium">2</span>
+                        }
+                        else if (task.Priority == Priority.Low)
+                        {
+                            <span class="task-badge-low">1</span>
+                        }
+                        else
+                        {
+                            <span class="task-badge-low">0</span>
+                        }
+                    </div>
+                    <p class="task-date">@task.DueDate.ToString()</p>
+                    <p class="task-description">@task.Description</p>
+                    <div class="task-footer">
+                        <a href="/UpdateTask/{id}" class="task-action">UPDATE</a>
+                        <a @onclick="() => MarkAsCompleted(task.Id)" class="task-action">COMPLETED</a>
+                        <span class="task-favorite">❤</span>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <p class="text-center text-muted">No hay tareas disponibles.</p>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private HomeModelViewData homeModel = new HomeModelViewData();
+    private string token = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            token = Environment.GetEnvironmentVariable("API_TOKEN")!;
+
+            if (string.IsNullOrEmpty(token))
+            {
+                Navigation.NavigateTo("/Login");
+            }
+
+            string url = "https://taskmanagerapi-byjordy.somee.com/Task/all";
+
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                var response = await client.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = response.Content.ReadAsStringAsync().Result;
+                    homeModel.Tasks = (JsonConvert.DeserializeObject<IEnumerable<Models.Task>>(responseContent))?.Where(t => !t.IsCompleted);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+
+    }
+
+    private void UpdateTask(int id)
+    {
+        Navigation.NavigateTo($"/UpdateTask/{id}");
+    }
+
+    private async Task MarkAsCompleted(int id)
+    {
+        string url = $"https://taskmanagerapi-byjordy.somee.com/Task/Completed/{id}";
+
+        try
+        {
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+				var response = await client.PutAsync(url, null);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    response = await client.GetAsync("https://taskmanagerapi-byjordy.somee.com/Task/all");
+                    var responseContent = response.Content.ReadAsStringAsync().Result;
+                    homeModel.Tasks = (JsonConvert.DeserializeObject<IEnumerable<Models.Task>>(responseContent))?.Where(t => !t.IsCompleted);
+                }
+				else
+				{
+					Console.WriteLine("Error: ", response.Content.ReadAsStringAsync().Result);
+				}
+            }
+        }
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Error: {ex.Message}");
+		}
+
+    }
+}
+
+
+
+

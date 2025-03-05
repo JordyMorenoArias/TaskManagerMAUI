@@ -1,0 +1,13 @@
+﻿<Router AppAssembly="@typeof(MauiProgram).Assembly">
+    <Found Context="routeData">
+        @if (routeData.PageType == typeof(Pages.Login) || routeData.PageType == typeof(Pages.Register))
+        {
+            <RouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayoutInWhite)" />
+        }
+        else
+        {
+            <RouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)" />
+        }
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+</Router>
