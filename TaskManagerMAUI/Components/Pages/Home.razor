@@ -1,12 +1,4 @@
-﻿@using System.Net.Http;
-@using System.Net.Http.Headers
-@using System.Text.Json;
-@using System.Text.Json.Serialization;
-@using Newtonsoft.Json;
-@using TaskManagerMAUI.Models
-@using TaskManagerMAUI.Models.Home
-@using TaskManagerMaui.Constants
-@using Task = System.Threading.Tasks.Task
+﻿@using TaskManagerMAUI.Models
 @inject NavigationManager Navigation
 
 @page "/Home"
@@ -14,7 +6,7 @@
 <div class="home-container">
 
     <div class="container-btn-create">
-        <button class="create-btn">
+        <button @onclick="() => CreateTask()" class="create-btn">
             <span class="plus">+</span> CREATE
         </button>
     </div>
@@ -48,7 +40,7 @@
                     <p class="task-date">@task.DueDate.ToString()</p>
                     <p class="task-description">@task.Description</p>
                     <div class="task-footer">
-                        <a href="/UpdateTask/{id}" class="task-action">UPDATE</a>
+                        <a @onclick="() => UpdateTask(task.Id)" class="task-action">UPDATE</a>
                         <a @onclick="() => MarkAsCompleted(task.Id)" class="task-action">COMPLETED</a>
                         <span class="task-favorite">❤</span>
                     </div>
@@ -91,19 +83,27 @@
                     var responseContent = response.Content.ReadAsStringAsync().Result;
                     homeModel.Tasks = (JsonConvert.DeserializeObject<IEnumerable<Models.Task>>(responseContent))?.Where(t => !t.IsCompleted);
                 }
+                else
+                {
+                     
+                }
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error: {ex.Message}");
         }
-
     }
 
-    private void UpdateTask(int id)
+    private void UpdateTask(int taskId)
     {
-        Navigation.NavigateTo($"/UpdateTask/{id}");
+        Navigation.NavigateTo($"/Update/{taskId}");
     }
+
+	private void CreateTask()
+	{
+		Navigation.NavigateTo("/Create");
+	}
 
     private async Task MarkAsCompleted(int id)
     {
