@@ -35,7 +35,10 @@
                 <label for="dueDate" class="form-label">Due Date</label>
                 <input type="date" id="dueDate" class="form-input" @bind-value="updateModel.DueDate" required />
             </div>
-            <button type="submit" class="form-button">UPDATE</button>
+            <div class="container-btn">
+                <button type="submit" class="form-button">UPDATE</button>
+                <button @onclick="DeleteTask" class="form-button">DELETE</button>
+            </div>
         </EditForm>
     }
     else
@@ -118,7 +121,7 @@
                 }
                 else
                 {
-					errorMessage = "An error occurred";
+                    errorMessage = "An error occurred";
                 }
             }
         }
@@ -127,5 +130,32 @@
             errorMessage = "An error occurred";
             Console.WriteLine($"Error: {ex.Message}");
         }
+    }
+
+    private async Task DeleteTask()
+    {
+        try
+        {
+            string url = $"https://taskmanagerapi-byjordy.somee.com/Task/delete/{taskId}";
+
+			using (var client = new HttpClient())
+			{
+				client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+				var response = await client.DeleteAsync(url);
+				if (response.IsSuccessStatusCode)
+				{
+					Navigation.NavigateTo("/Home");
+				}
+				else
+				{
+					errorMessage = "An error occurred";
+				}
+			}
+        }
+		catch (Exception ex)
+		{
+			errorMessage = "An error occurred";
+			Console.WriteLine($"Error: {ex.Message}");
+		}
     }
 }

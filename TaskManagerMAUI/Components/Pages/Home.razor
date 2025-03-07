@@ -54,10 +54,16 @@
             </div>
         }
     </div>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="error-message">@errorMessage</div>
+    }
 </div>
 
 @code {
     private HomeModelViewData homeModel = new HomeModelViewData();
+    private string errorMessage = string.Empty;
     private string token = "";
 
     protected override async Task OnInitializedAsync()
@@ -85,13 +91,14 @@
                 }
                 else
                 {
-                     
+					errorMessage = response.Content.ReadAsStringAsync().Result;
                 }
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error: {ex.Message}");
+			errorMessage = "An error occurred";
         }
     }
 

@@ -93,6 +93,12 @@ form {
     border: none;
 }
 
+.container-btn {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
 /* Styles Login */
 .login-container {
     margin-top: 100px;
