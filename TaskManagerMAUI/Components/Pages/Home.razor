@@ -1,5 +1,5 @@
-﻿@using TaskManagerMAUI.Models
-@inject NavigationManager Navigation
+﻿@inject NavigationManager Navigation
+@inject ITokenService TokenService
 
 @page "/Home"
 
@@ -12,7 +12,7 @@
     </div>
 
     <div>
-        @if (homeModel.Tasks?.Count() != 0 || homeModel is not null)
+        @if (homeModel is not null && homeModel.Tasks is not null && homeModel.Tasks.Any())
         {
             @foreach (var task in homeModel.Tasks!)
             {
@@ -64,20 +64,20 @@
 @code {
     private HomeModelViewData homeModel = new HomeModelViewData();
     private string errorMessage = string.Empty;
-    private string token = "";
+    private string? token = "";
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            token = Environment.GetEnvironmentVariable("API_TOKEN")!;
+            token = await TokenService.GetTokenAsync();
 
             if (string.IsNullOrEmpty(token))
             {
                 Navigation.NavigateTo("/Login");
             }
 
-            string url = "https://taskmanagerapi-byjordy.somee.com/Task/all";
+            string url = "https://taskmanagerapi-byjordy.somee.com/Task/all/false";
 
             using (var client = new HttpClient())
             {
@@ -87,18 +87,18 @@
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = response.Content.ReadAsStringAsync().Result;
-                    homeModel.Tasks = (JsonConvert.DeserializeObject<IEnumerable<Models.Task>>(responseContent))?.Where(t => !t.IsCompleted);
+                    homeModel.Tasks = (JsonConvert.DeserializeObject<IEnumerable<Models.Task>>(responseContent))?.OrderBy(t => t.DueDate);
                 }
                 else
                 {
-					errorMessage = response.Content.ReadAsStringAsync().Result;
+                    errorMessage = response.Content.ReadAsStringAsync().Result;
                 }
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error: {ex.Message}");
-			errorMessage = "An error occurred";
+            errorMessage = "An error occurred";
         }
     }
 
@@ -107,10 +107,10 @@
         Navigation.NavigateTo($"/Update/{taskId}");
     }
 
-	private void CreateTask()
-	{
-		Navigation.NavigateTo("/Create");
-	}
+    private void CreateTask()
+    {
+        Navigation.NavigateTo("/Create");
+    }
 
     private async Task MarkAsCompleted(int id)
     {
@@ -121,18 +121,18 @@
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-				var response = await client.PutAsync(url, null);
+                var response = await client.PutAsync(url, null);
 
                 if (response.IsSuccessStatusCode)
                 {
-                    response = await client.GetAsync("https://taskmanagerapi-byjordy.somee.com/Task/all");
-                    var responseContent = response.Content.ReadAsStringAsync().Result;
-                    homeModel.Tasks = (JsonConvert.DeserializeObject<IEnumerable<Models.Task>>(responseContent))?.Where(t => !t.IsCompleted);
+                    response = await client.GetAsync("https://taskmanagerapi-byjordy.somee.com/Task/all/false");
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    homeModel.Tasks = (JsonConvert.DeserializeObject<IEnumerable<Models.Task>>(responseContent))?.OrderBy(t => t.DueDate);
                 }
-				else
-				{
-					Console.WriteLine("Error: ", response.Content.ReadAsStringAsync().Result);
-				}
+                else
+                {
+                    Console.WriteLine($"Error: {await response.Content.ReadAsStringAsync()}");
+                }
             }
         }
 		catch (Exception ex)

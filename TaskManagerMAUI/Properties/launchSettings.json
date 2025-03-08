@@ -2,10 +2,7 @@
   "profiles": {
     "Windows Machine": {
       "commandName": "Project",
-      "nativeDebugging": false,
-      "environmentVariables": {
-        "API_TOKEN": ""
-      }
+      "nativeDebugging": false
     }
   }
 }

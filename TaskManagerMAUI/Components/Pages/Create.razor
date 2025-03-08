@@ -1,7 +1,99 @@
-﻿@page "/Create"
+﻿@inject NavigationManager Navigation
+@inject ITokenService TokenService
 
-<h3>Create</h3>
+@page "/Create"
+
+<PageTitle>Create</PageTitle>
+
+<button @onclick="GoBack" class="back-button">&lt;</button>
+
+<div class="container">
+
+    <h1 class="form-title">CREATE TASK</h1>
+
+    <EditForm Model="@createModel" OnValidSubmit="@CreateTask">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div class="form-group">
+            <label for="title" class="form-label">Title</label>
+            <input type="text" id="title" class="form-input" @bind="createModel!.Title" placeholder="Title" required />
+        </div>
+        <div class="form-group">
+            <label for="description" class="form-label">Description</label>
+            <textarea id="description" class="form-input input-description" @bind="createModel.Description" placeholder="Description"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="priority" class="form-label">Priority</label>
+            <select id="priority" class="form-input" @bind="createModel.Priority">
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="dueDate" class="form-label">Due Date</label>
+            <input type="date" id="dueDate" class="form-input" @bind="createModel.DueDate" required />
+        </div>
+        <button type="submit" class="form-button">CREATE</button>
+    </EditForm>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="error-message">@errorMessage</div>
+    }
+</div>
 
 @code {
+    private string? token = "";
+    private string errorMessage = string.Empty;
 
+    private CreateModelViewData createModel = new CreateModelViewData();
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/Home");
+    }
+
+    private async Task CreateTask()
+    {
+        if (createModel == null)
+        {
+            errorMessage = "Complete all fields";
+            return;
+        }
+
+        try
+        {
+            token = await TokenService.GetTokenAsync();
+
+            if (string.IsNullOrEmpty(token))
+            {
+                Navigation.NavigateTo("/Login");
+            }
+
+            string url = "https://taskmanagerapi-byjordy.somee.com/Task/create";
+
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                var content = new StringContent(JsonConvert.SerializeObject(createModel), Encoding.UTF8, "application/json");
+                var response = await client.PostAsync(url, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    Navigation.NavigateTo("/Home");
+                }
+                else
+                {
+                    errorMessage = $"An error occurred: {response.ReasonPhrase}";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
 }

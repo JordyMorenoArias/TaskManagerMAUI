@@ -1,8 +1,8 @@
 ﻿@using System.Text
 @using System.Net.Http.Headers
-@using TaskManagerMAUI.Models
-@using Task = System.Threading.Tasks.Task
+
 @inject NavigationManager Navigation
+@inject ITokenService TokenService
 
 @page "/"
 
@@ -65,7 +65,7 @@
 
                     if (tokenResponse != null)
                     {
-                        Environment.SetEnvironmentVariable("API_TOKEN", tokenResponse.Token);
+                        await TokenService.SaveTokenAsync(tokenResponse.Token!);
 
                         Navigation.NavigateTo("/Home");
                     }

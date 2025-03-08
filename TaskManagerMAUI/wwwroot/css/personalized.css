@@ -55,7 +55,7 @@ form {
 
 .input-description {
     height: 100px;
-    max-height: 100px;
+    max-height: 120px;
     resize: vertical;
 }
 
@@ -101,7 +101,7 @@ form {
 
 /* Styles Login */
 .login-container {
-    margin-top: 100px;
+    margin-top: 130px;
 }
 
 .password-container {

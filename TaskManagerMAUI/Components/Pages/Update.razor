@@ -1,5 +1,5 @@
-﻿@using TaskManagerMAUI.Models
-@inject NavigationManager Navigation
+﻿@inject NavigationManager Navigation
+@inject ITokenService TokenService
 
 @page "/Update/{taskId:int}"
 
@@ -17,11 +17,11 @@
             <ValidationSummary />
             <div class="form-group">
                 <label for="title" class="form-label">Title</label>
-                <input type="text" id="title" class="form-input" @bind-value="updateModel.Title" placeholder="Title" required />
+                <input type="text" id="title" class="form-input" @bind="updateModel.Title" placeholder="Title" required />
             </div>
             <div class="form-group">
                 <label for="description" class="form-label">Description</label>
-                <textarea id="description" class="form-input input-description" @bind="updateModel.Description" placeholder="Description" required></textarea>
+                <textarea id="description" class="form-input input-description" @bind="updateModel.Description" placeholder="Description"></textarea>
             </div>
             <div class="form-group">
                 <label for="priority" class="form-label">Priority</label>
@@ -33,7 +33,7 @@
             </div>
             <div class="form-group">
                 <label for="dueDate" class="form-label">Due Date</label>
-                <input type="date" id="dueDate" class="form-input" @bind-value="updateModel.DueDate" required />
+                <input type="date" id="dueDate" class="form-input" @bind="updateModel.DueDate" required />
             </div>
             <div class="container-btn">
                 <button type="submit" class="form-button">UPDATE</button>
@@ -55,7 +55,7 @@
 @code {
     [Parameter]
     public int taskId { get; set; }
-    private string token = "";
+    private string? token = "";
     private string errorMessage = string.Empty;
 
     private UpdateModelViewData? updateModel;
@@ -65,7 +65,7 @@
     {
         try
         {
-            token = Environment.GetEnvironmentVariable("API_TOKEN")!;
+            token = await TokenService.GetTokenAsync();
 
             if (string.IsNullOrEmpty(token))
             {
