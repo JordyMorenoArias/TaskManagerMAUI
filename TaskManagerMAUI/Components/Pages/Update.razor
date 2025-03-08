@@ -1,7 +1,154 @@
-﻿@page "/Update"
+﻿@inject NavigationManager Navigation
+@inject ITokenService TokenService
 
-<h3>Update</h3>
+@page "/Update/{taskId:int}"
+
+<PageTitle>Update</PageTitle>
+
+<div class="container">
+    @if (updateModel != null)
+    {
+        <h1 class="form-title">UPDATE TASK</h1>
+
+        <EditForm Model="@updateModel" OnValidSubmit="@UpdateTask">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <div class="form-group">
+                <label for="title" class="form-label">Title</label>
+                <input type="text" id="title" class="form-input" @bind="updateModel.Title" placeholder="Title" required />
+            </div>
+            <div class="form-group">
+                <label for="description" class="form-label">Description</label>
+                <textarea id="description" class="form-input input-description" @bind="updateModel.Description" placeholder="Description"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="priority" class="form-label">Priority</label>
+                <select id="priority" class="form-input" @bind="updateModel.Priority">
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="dueDate" class="form-label">Due Date</label>
+                <input type="date" id="dueDate" class="form-input" @bind="updateModel.DueDate" required />
+            </div>
+            <div class="container-btn">
+                <button @onclick="DeleteTask" class="form-button">DELETE</button>
+                <button type="submit" class="form-button">UPDATE</button>
+            </div>
+        </EditForm>
+    }
+    else
+    {
+        <p><em>Loading...</em></p>
+    }
+
+    @if(!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="error-message">@errorMessage</div>
+    }
+</div>
 
 @code {
+    [Parameter]
+    public int taskId { get; set; }
+    private string? token = "";
+    private string errorMessage = string.Empty;
 
+    private UpdateModelViewData? updateModel;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            token = await TokenService.GetTokenAsync();
+
+            if (string.IsNullOrEmpty(token))
+            {
+                Navigation.NavigateTo("/Login");
+            }
+
+            string url = $"https://taskmanagerapi-byjordy.somee.com/Task/get/{taskId}";
+
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                var response = await client.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = response.Content.ReadAsStringAsync().Result;
+                    updateModel = JsonConvert.DeserializeObject<UpdateModelViewData>(responseContent);
+                }
+                else
+                {
+                    errorMessage = "Task not found";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An error occurred";
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+
+    private async Task UpdateTask()
+    {
+        try
+        {
+            string url = "https://taskmanagerapi-byjordy.somee.com/Task/update";
+
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                var content = new StringContent(JsonConvert.SerializeObject(updateModel), Encoding.UTF8, "application/json");
+                var response = await client.PutAsync(url, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    Navigation.NavigateTo("/Home");
+                }
+                else
+                {
+                    errorMessage = "An error occurred";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An error occurred";
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteTask()
+    {
+        try
+        {
+            string url = $"https://taskmanagerapi-byjordy.somee.com/Task/delete/{taskId}";
+
+			using (var client = new HttpClient())
+			{
+				client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+				var response = await client.DeleteAsync(url);
+				if (response.IsSuccessStatusCode)
+				{
+					Navigation.NavigateTo("/Home");
+				}
+				else
+				{
+					errorMessage = "An error occurred";
+				}
+			}
+        }
+		catch (Exception ex)
+		{
+			errorMessage = "An error occurred";
+			Console.WriteLine($"Error: {ex.Message}");
+		}
+    }
 }

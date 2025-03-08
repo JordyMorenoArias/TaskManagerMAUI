@@ -1,16 +1,15 @@
 ﻿@using System.Text
 @using System.Net.Http.Headers
-@using TaskManagerMAUI.Models
-@using TaskManagerMAUI.Models.Login
-@using Task = System.Threading.Tasks.Task
+
 @inject NavigationManager Navigation
+@inject ITokenService TokenService
 
 @page "/"
 
 <PageTitle>Login</PageTitle>
 
-<div class="login-container">
-    <h1 class="login-title">SIGN IN</h1>
+<div class="container" style="margin-top: 130px;">
+    <h1 class="form-title">SIGN IN</h1>
 
     <EditForm Model="@loginModel" OnValidSubmit="@Authenticate">
         <DataAnnotationsValidator />
@@ -26,17 +25,23 @@
             <input type="password" id="password" class="form-input" @bind-value="loginModel.Password" placeholder="Password" required />
         </div>
 
-        <button type="submit" class="login-button">LOGIN IN</button>
+        <button type="submit" class="form-button">LOGIN IN</button>
     </EditForm>
 
     <div class="create-account">
         <a href="/Register">CREATE ACCOUNT</a>
     </div>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="error-message">@errorMessage</div>
+    }
 </div>
 
 
 @code {
     private LoginModelViewData loginModel = new LoginModelViewData();
+	private string errorMessage = string.Empty;
 
     private async Task Authenticate()
     {
@@ -60,24 +65,30 @@
 
                     if (tokenResponse != null)
                     {
-                        Environment.SetEnvironmentVariable("API_TOKEN", tokenResponse.Token);
+                        await TokenService.SaveTokenAsync(tokenResponse.Token!);
 
                         Navigation.NavigateTo("/Home");
                     }
                     else
                     {
-						Console.WriteLine("Invalid credentials: ", responseContent);
+                        errorMessage = "Invalid response from server.";
                     }
+                }
+                else
+                {
+                    errorMessage = "Invalid credentials. Please try again.";
                 }
             }
         }
-		catch (HttpRequestException ex)
-		{
-			Console.WriteLine(ex.Message);
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine(ex.Message);
-		}
+        catch (HttpRequestException ex)
+        {
+            errorMessage = "Network error. Please check your connection.";
+			Console.WriteLine($"Error: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An unexpected error occurred. Please try again later.";
+            Console.WriteLine($"Error: {ex.Message}");
+        }
 	}
 }

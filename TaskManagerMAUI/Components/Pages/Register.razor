@@ -1,7 +1,86 @@
-﻿@page "/Register"
+﻿@inject NavigationManager Navigation
+@inject ITokenService TokenService
 
-<h3>Register</h3>
+@page "/Register"
+
+<PageTitle>Login</PageTitle>
+
+<div class="container" style="margin-top: 90px;">
+    <h1 class="form-title">SIGN IN</h1>
+
+    <EditForm Model="@registerModel" OnValidSubmit="@RegisterUser">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label for="text" class="form-label">Username</label>
+            <input type="text" id="text" class="form-input" @bind-value="registerModel.UserName" placeholder="Username" required />
+        </div>
+
+        <div class="form-group">
+            <label for="email" class="form-label">Email address</label>
+            <input type="email" id="email" class="form-input" @bind-value="registerModel.Email" placeholder="Email" required />
+        </div>
+
+        <div class="form-group password-container">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" id="password" class="form-input" @bind-value="registerModel.Password" placeholder="Password" required />
+        </div>
+
+        <div class="container-btn">
+            <button @onclick="CancelRegister" class="form-button">CANCEL</button>
+            <button type="submit" class="form-button">REGISTER</button>
+        </div>
+    </EditForm>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="error-message">@errorMessage</div>
+    }
+</div>
 
 @code {
+    RegisterModelViewData registerModel = new RegisterModelViewData();
+    private string errorMessage = string.Empty;
 
+    public async Task RegisterUser()
+    {
+        try
+        {
+            string? token = await TokenService.GetTokenAsync();
+
+            if (string.IsNullOrEmpty(token))
+            {
+                Navigation.NavigateTo("/");
+            }
+
+            string url = "https://taskmanagerapi-byjordy.somee.com/api/User/Create";
+
+            using (var client = new HttpClient())
+            {
+				client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+				var response = await client.PostAsJsonAsync(url, registerModel);
+
+				if (response.IsSuccessStatusCode)
+				{
+					Navigation.NavigateTo("/Login");
+				}
+				else
+				{
+					errorMessage = response.Content.ReadAsStringAsync().Result;
+                }
+            }
+
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+
+	public void CancelRegister()
+	{
+		Navigation.NavigateTo("/");
+	}
 }
