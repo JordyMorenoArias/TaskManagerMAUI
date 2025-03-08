@@ -81,22 +81,47 @@ form {
     background-color: #5100C0;
 }
 
-.back-button {
-    position: absolute;
-    top: 10px;
-    left: 53px;
-    background-color: white;
-    font-size: 40px;
-    height: 40px;
-    border-radius: 4px;
-    cursor: pointer;
-    border: none;
-}
-
 .container-btn {
     display: flex;
     justify-content: space-between;
     gap: 10px;
+}
+
+/* Bottom Navigation Bar*/
+
+.bottom-navigation {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 60px;
+    background-color: #6200EE;
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+}
+
+.btn-bottom-navigation {
+    height: 100%;
+    width: 65px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding-top: 5px;
+    gap: 3px;
+    cursor: pointer;
+}
+
+.btn-bottom-navigation img {
+    max-width: 25px;
+    max-height: 25px;
+}
+
+.btn-bottom-navigation span {
+    display: block;
+    font-size: 10px;
+    color: white;
+    text-align: center;
 }
 
 /* Styles Login */

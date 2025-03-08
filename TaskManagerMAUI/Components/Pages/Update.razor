@@ -5,8 +5,6 @@
 
 <PageTitle>Update</PageTitle>
 
-<button @onclick="GoBack" class="back-button">&lt;</button>
-
 <div class="container">
     @if (updateModel != null)
     {
@@ -95,11 +93,6 @@
             errorMessage = "An error occurred";
             Console.WriteLine($"Error: {ex.Message}");
         }
-    }
-
-    private void GoBack()
-    {
-        Navigation.NavigateTo("/Home");
     }
 
     private async Task UpdateTask()

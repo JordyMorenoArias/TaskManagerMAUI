@@ -1,4 +1,6 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+@inject ITokenService TokenService
 
 <div class="page">
     @* <div class="sidebar"> *@
@@ -6,9 +8,41 @@
     @* </div> *@
 
     <main>
-
         <article class="content px-4">
             @Body
         </article>
+        <div class="bottom-navigation">
+            <div class="btn-bottom-navigation">
+                <img src="img/heart.png" alt="Favorities" />
+                <span>Favorities</span>
+            </div>
+            <div @onclick="() => GoHome()" class="btn-bottom-navigation">
+				<img src="img/home.png" alt="Home" />
+                <span>Home</span>
+            </div>
+            <div @onclick="() => GoLeave()" class="btn-bottom-navigation">
+				<img src="img/leave.png" alt="Leave" />
+                <span>Leave</span>
+            </div>
+        </div>
     </main>
 </div>
+
+
+@code{
+	private void GoFavorite()
+	{
+		Navigation.NavigateTo("/Favorite");
+	}
+
+	private void GoHome()
+	{
+		Navigation.NavigateTo("/Home");
+	}
+
+	private async Task GoLeave()
+	{
+		await TokenService.RemoveTokenAsync();
+		Navigation.NavigateTo("/");
+	}
+}

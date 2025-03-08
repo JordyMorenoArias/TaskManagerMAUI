@@ -5,8 +5,6 @@
 
 <PageTitle>Create</PageTitle>
 
-<button @onclick="GoBack" class="back-button">&lt;</button>
-
 <div class="container">
 
     <h1 class="form-title">CREATE TASK</h1>
@@ -48,11 +46,6 @@
     private string errorMessage = string.Empty;
 
     private CreateModelViewData createModel = new CreateModelViewData();
-
-    private void GoBack()
-    {
-        Navigation.NavigateTo("/Home");
-    }
 
     private async Task CreateTask()
     {
