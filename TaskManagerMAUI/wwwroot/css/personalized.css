@@ -88,7 +88,6 @@ form {
 }
 
 /* Bottom Navigation Bar*/
-
 .bottom-navigation {
     position: fixed;
     bottom: 0;
@@ -125,9 +124,6 @@ form {
 }
 
 /* Styles Login */
-.login-container {
-    margin-top: 130px;
-}
 
 .password-container {
     position: relative;
