@@ -11,28 +11,30 @@
         <article class="content px-4">
             @Body
         </article>
+    </main>
+	<footer>
         <div class="bottom-navigation">
-            <div class="btn-bottom-navigation">
-                <img src="img/heart.png" alt="Favorities" />
-                <span>Favorities</span>
+            <div @onclick="() => GoDone()" class="btn-bottom-navigation">
+                <img src="img/Done.png" alt="Favorities" />
+                <span>Done</span>
             </div>
             <div @onclick="() => GoHome()" class="btn-bottom-navigation">
-				<img src="img/home.png" alt="Home" />
+                <img src="img/home.png" alt="Home" />
                 <span>Home</span>
             </div>
             <div @onclick="() => GoLeave()" class="btn-bottom-navigation">
-				<img src="img/leave.png" alt="Leave" />
+                <img src="img/leave.png" alt="Leave" />
                 <span>Leave</span>
             </div>
         </div>
-    </main>
+	</footer>
 </div>
 
 
 @code{
-	private void GoFavorite()
+	private void GoDone()
 	{
-		Navigation.NavigateTo("/Favorite");
+		Navigation.NavigateTo("/Done");
 	}
 
 	private void GoHome()
