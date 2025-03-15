@@ -1,5 +1,6 @@
 ﻿@inject NavigationManager Navigation
 @inject ITokenService TokenService
+@inject IShareTaskService ShareTaskService
 
 @page "/Home"
 
@@ -37,12 +38,12 @@
 							<span class="task-badge-low">0</span>
 						}
 					</div>
-					<p class="task-date">@task.DueDate.ToString()</p>
+					<p class="task-date">@task.DueDate.ToString("dd MMM yyyy")</p>
 					<p class="task-description">@task.Description</p>
 					<div class="task-footer">
 						<a @onclick="() => UpdateTask(task.Id)" class="task-action">UPDATE</a>
 						<a @onclick="() => MarkAsCompleted(task.Id)" class="task-action">COMPLETED</a>
-						<img class="btn-share" src="img/share.png" alt="Home" />
+						<img @onclick="async () => await ShareTask(task)" class="btn-share" src="img/share.png" alt="Home" />
 					</div>
 				</div>
 			}
@@ -86,7 +87,7 @@
 
 				if (response.IsSuccessStatusCode)
 				{
-					var responseContent = response.Content.ReadAsStringAsync().Result;
+					var responseContent = await response.Content.ReadAsStringAsync();
 					homeModel.Tasks = (JsonConvert.DeserializeObject<IEnumerable<Models.Task>>(responseContent))?.OrderBy(t => t.DueDate);
 				}
 				else
@@ -110,6 +111,14 @@
 	private void CreateTask()
 	{
 		Navigation.NavigateTo("/Create");
+	}
+
+	private async Task ShareTask(Models.Task task)
+	{
+		if (task != null)
+		{
+			await ShareTaskService.ShareTaskAsync(task);
+		}
 	}
 
 	private async Task MarkAsCompleted(int id)

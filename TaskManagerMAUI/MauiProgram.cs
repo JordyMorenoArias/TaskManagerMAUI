@@ -16,6 +16,8 @@ public static class MauiProgram
 			});
 
 		builder.Services.AddSingleton<ITokenService, TokenService>();
+		builder.Services.AddSingleton<IShareTaskService, ShareTaskService>();
+        builder.Services.AddSingleton<ILoadTaskService, LoadTaskService>();
         builder.Services.AddMauiBlazorWebView();
 
 #if DEBUG
