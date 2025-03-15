@@ -61,6 +61,14 @@
     </ItemGroup>
 
     <ItemGroup>
+      <MauiAsset Remove="Resources\Raw\appsettings.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="Resources\Raw\appsettings.json" />
+    </ItemGroup>
+
+    <ItemGroup>
       <None Include="wwwroot\css\personalized.css" />
     </ItemGroup>
 

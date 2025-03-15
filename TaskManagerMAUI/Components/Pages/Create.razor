@@ -1,6 +1,7 @@
 ﻿@inject NavigationManager Navigation
 @inject ITokenService TokenService
 @inject ILoadTaskService LoadTaskService
+@inject IConfiguration Configuration
 
 @page "/Create"
 
@@ -47,6 +48,7 @@
 @code {
     private string? token = "";
     private string errorMessage = string.Empty;
+	private string baseUrl = string.Empty;
 
     private CreateModelViewData createModel = new CreateModelViewData();
 
@@ -67,7 +69,8 @@
                 Navigation.NavigateTo("/Login");
             }
 
-            string url = "https://taskmanagerapi-byjordy.somee.com/Task/create";
+			baseUrl = Configuration["ApiSettings:BaseUrl"]!;
+            string url = $"{baseUrl}/Task/create";
 
             using (var client = new HttpClient())
             {

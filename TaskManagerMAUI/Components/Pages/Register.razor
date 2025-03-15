@@ -1,5 +1,6 @@
 ﻿@inject NavigationManager Navigation
 @inject ITokenService TokenService
+@inject IConfiguration Configuration
 
 @page "/Register"
 
@@ -42,6 +43,7 @@
 @code {
     RegisterModelViewData registerModel = new RegisterModelViewData();
     private string errorMessage = string.Empty;
+    private string baseUrl = string.Empty;
 
     public async Task RegisterUser()
     {
@@ -54,7 +56,8 @@
                 Navigation.NavigateTo("/");
             }
 
-            string url = "https://taskmanagerapi-byjordy.somee.com/api/User/Create";
+            baseUrl = Configuration["ApiSettings:BaseUrl"]!;
+            string url = $"{baseUrl}/api/User/Create";
 
             using (var client = new HttpClient())
             {

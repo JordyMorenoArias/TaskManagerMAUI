@@ -1,6 +1,7 @@
 ﻿@inject NavigationManager Navigation
 @inject ITokenService TokenService
 @inject IShareTaskService ShareTaskService
+@inject IConfiguration Configuration
 
 @page "/Home"
 
@@ -66,6 +67,7 @@
 	private HomeModelViewData homeModel = new HomeModelViewData();
 	private string errorMessage = string.Empty;
 	private string? token = "";
+	private string baseUrl = string.Empty;
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -78,7 +80,8 @@
 				Navigation.NavigateTo("/Login");
 			}
 
-			string url = "https://taskmanagerapi-byjordy.somee.com/Task/all/false";
+			baseUrl = Configuration["ApiSettings:BaseUrl"]!;
+			string url = $"{baseUrl}/Task/all/false";
 
 			using (var client = new HttpClient())
 			{
@@ -123,7 +126,7 @@
 
 	private async Task MarkAsCompleted(int id)
 	{
-		string url = $"https://taskmanagerapi-byjordy.somee.com/Task/Completed/{id}";
+		string url = $"{baseUrl}/Task/Completed/{id}";
 
 		try
 		{

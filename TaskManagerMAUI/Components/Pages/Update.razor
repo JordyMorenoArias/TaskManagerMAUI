@@ -1,5 +1,6 @@
 ﻿@inject NavigationManager Navigation
 @inject ITokenService TokenService
+@inject IConfiguration Configuration
 
 @page "/Update/{taskId:int}"
 
@@ -55,6 +56,7 @@
     public int taskId { get; set; }
     private string? token = "";
     private string errorMessage = string.Empty;
+    private string baseUrl = string.Empty;
 
     private UpdateModelViewData? updateModel;
 
@@ -70,7 +72,8 @@
                 Navigation.NavigateTo("/Login");
             }
 
-            string url = $"https://taskmanagerapi-byjordy.somee.com/Task/get/{taskId}";
+            baseUrl = Configuration["ApiSettings:BaseUrl"]!;
+            string url = $"{baseUrl}/Task/get/{taskId}";
 
             using (var client = new HttpClient())
             {
@@ -99,7 +102,7 @@
     {
         try
         {
-            string url = "https://taskmanagerapi-byjordy.somee.com/Task/update";
+            string url = $"{baseUrl}/Task/update";
 
             using (var client = new HttpClient())
             {
@@ -129,7 +132,7 @@
     {
         try
         {
-            string url = $"https://taskmanagerapi-byjordy.somee.com/Task/delete/{taskId}";
+            string url = $"{baseUrl}/Task/delete/{taskId}";
 
 			using (var client = new HttpClient())
 			{
