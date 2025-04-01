@@ -1,146 +1,158 @@
 ﻿@inject NavigationManager Navigation
 @inject ITokenService TokenService
+@inject IShareTaskService ShareTaskService
+@inject IConfiguration Configuration
 
 @page "/Home"
 
 <div class="home-container">
 
-    <div class="container-btn-create">
-        <button @onclick="() => CreateTask()" class="create-btn">
-            <span class="plus">+</span> CREATE
-        </button>
-    </div>
+	<div class="container-btn-create">
+		<button @onclick="() => CreateTask()" class="create-btn">
+			<span class="plus">+</span> CREATE
+		</button>
+	</div>
 
-    <div>
-        @if (homeModel is not null && homeModel.Tasks is not null && homeModel.Tasks.Any())
-        {
-            @foreach (var task in homeModel.Tasks!)
-            {
-                <div class="task-card">
-                    <div class="task-header">
-                        <h3>@task.Title</h3>
-                        <span style="display: none;">@task.Id</span>
-                        @if (task.Priority == Priority.High)
-                        {
-                            <span class="task-badge-High">3</span>
-                        }
-                        else if (task.Priority == Priority.Medium)
-                        {
-                            <span class="task-badge-medium">2</span>
-                        }
-                        else if (task.Priority == Priority.Low)
-                        {
-                            <span class="task-badge-low">1</span>
-                        }
-                        else
-                        {
-                            <span class="task-badge-low">0</span>
-                        }
-                    </div>
-                    <p class="task-date">@task.DueDate.ToString()</p>
-                    <p class="task-description">@task.Description</p>
-                    <div class="task-footer">
-                        <a @onclick="() => UpdateTask(task.Id)" class="task-action">UPDATE</a>
-                        <a @onclick="() => MarkAsCompleted(task.Id)" class="task-action">COMPLETED</a>
-                        <span class="task-favorite">❤</span>
-                    </div>
-                </div>
-            }
-        }
-        else
-        {
-            <div class="col-12">
-                <p class="text-center text-muted">You have no pending tasks</p>
-            </div>
-        }
-    </div>
+	<div>
+		@if (homeModel is not null && homeModel.Tasks is not null && homeModel.Tasks.Any())
+		{
+			@foreach (var task in homeModel.Tasks!)
+			{
+				<div class="task-card">
+					<div class="task-header">
+						<h3>@task.Title</h3>
+						<span style="display: none;">@task.Id</span>
+						@if (task.Priority == Priority.High)
+						{
+							<span class="task-badge-High">3</span>
+						}
+						else if (task.Priority == Priority.Medium)
+						{
+							<span class="task-badge-medium">2</span>
+						}
+						else if (task.Priority == Priority.Low)
+						{
+							<span class="task-badge-low">1</span>
+						}
+						else
+						{
+							<span class="task-badge-low">0</span>
+						}
+					</div>
+					<p class="task-date">@task.DueDate.ToString("dd MMM yyyy")</p>
+					<p class="task-description">@task.Description</p>
+					<div class="task-footer">
+						<a @onclick="() => UpdateTask(task.Id)" class="task-action">UPDATE</a>
+						<a @onclick="() => MarkAsCompleted(task.Id)" class="task-action">COMPLETED</a>
+						<img @onclick="async () => await ShareTask(task)" class="btn-share" src="img/share.png" alt="Home" />
+					</div>
+				</div>
+			}
+		}
+		else
+		{
+			<div class="col-12">
+				<p class="text-center text-muted">You have no pending tasks</p>
+			</div>
+		}
+	</div>
 
-    @if (!string.IsNullOrEmpty(errorMessage))
-    {
-        <div class="error-message">@errorMessage</div>
-    }
+	@if (!string.IsNullOrEmpty(errorMessage))
+	{
+		<div class="error-message">@errorMessage</div>
+	}
 </div>
 
 @code {
-    private HomeModelViewData homeModel = new HomeModelViewData();
-    private string errorMessage = string.Empty;
-    private string? token = "";
+	private HomeModelViewData homeModel = new HomeModelViewData();
+	private string errorMessage = string.Empty;
+	private string? token = "";
+	private string baseUrl = string.Empty;
 
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            token = await TokenService.GetTokenAsync();
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			token = await TokenService.GetTokenAsync();
 
-            if (string.IsNullOrEmpty(token))
-            {
-                Navigation.NavigateTo("/Login");
-            }
+			if (string.IsNullOrEmpty(token))
+			{
+				Navigation.NavigateTo("/Login");
+			}
 
-            string url = "https://taskmanagerapi-byjordy.somee.com/Task/all/false";
+			baseUrl = Configuration["ApiSettings:BaseUrl"]!;
+			string url = $"{baseUrl}/Task/all/false";
 
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await client.GetAsync(url);
+			using (var client = new HttpClient())
+			{
+				client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+				var response = await client.GetAsync(url);
 
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = response.Content.ReadAsStringAsync().Result;
-                    homeModel.Tasks = (JsonConvert.DeserializeObject<IEnumerable<Models.Task>>(responseContent))?.OrderBy(t => t.DueDate);
-                }
-                else
-                {
-                    errorMessage = response.Content.ReadAsStringAsync().Result;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error: {ex.Message}");
-            errorMessage = "An error occurred";
-        }
-    }
+				if (response.IsSuccessStatusCode)
+				{
+					var responseContent = await response.Content.ReadAsStringAsync();
+					homeModel.Tasks = (JsonConvert.DeserializeObject<IEnumerable<Models.Task>>(responseContent))?.OrderBy(t => t.DueDate);
+				}
+				else
+				{
+					errorMessage = response.Content.ReadAsStringAsync().Result;
+				}
+			}
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Error: {ex.Message}");
+			errorMessage = "An error occurred";
+		}
+	}
 
-    private void UpdateTask(int taskId)
-    {
-        Navigation.NavigateTo($"/Update/{taskId}");
-    }
+	private void UpdateTask(int taskId)
+	{
+		Navigation.NavigateTo($"/Update/{taskId}");
+	}
 
-    private void CreateTask()
-    {
-        Navigation.NavigateTo("/Create");
-    }
+	private void CreateTask()
+	{
+		Navigation.NavigateTo("/Create");
+	}
 
-    private async Task MarkAsCompleted(int id)
-    {
-        string url = $"https://taskmanagerapi-byjordy.somee.com/Task/Completed/{id}";
+	private async Task ShareTask(Models.Task task)
+	{
+		if (task != null)
+		{
+			await ShareTaskService.ShareTaskAsync(task);
+		}
+	}
 
-        try
-        {
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                var response = await client.PutAsync(url, null);
+	private async Task MarkAsCompleted(int id)
+	{
+		string url = $"{baseUrl}/Task/Completed/{id}";
 
-                if (response.IsSuccessStatusCode)
-                {
-                    response = await client.GetAsync("https://taskmanagerapi-byjordy.somee.com/Task/all/false");
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    homeModel.Tasks = (JsonConvert.DeserializeObject<IEnumerable<Models.Task>>(responseContent))?.OrderBy(t => t.DueDate);
-                }
-                else
-                {
-                    Console.WriteLine($"Error: {await response.Content.ReadAsStringAsync()}");
-                }
-            }
-        }
+		try
+		{
+			using (var client = new HttpClient())
+			{
+				client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+				var response = await client.PutAsync(url, null);
+
+				if (response.IsSuccessStatusCode)
+				{
+					response = await client.GetAsync("https://taskmanagerapi-byjordy.somee.com/Task/all/false");
+					var responseContent = await response.Content.ReadAsStringAsync();
+					homeModel.Tasks = (JsonConvert.DeserializeObject<IEnumerable<Models.Task>>(responseContent))?.OrderBy(t => t.DueDate);
+				}
+				else
+				{
+					Console.WriteLine($"Error: {await response.Content.ReadAsStringAsync()}");
+				}
+			}
+		}
 		catch (Exception ex)
 		{
 			Console.WriteLine($"Error: {ex.Message}");
 		}
 
-    }
+	}
 }
 
 

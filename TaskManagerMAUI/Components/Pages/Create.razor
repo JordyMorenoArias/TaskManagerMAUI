@@ -1,5 +1,7 @@
 ﻿@inject NavigationManager Navigation
 @inject ITokenService TokenService
+@inject ILoadTaskService LoadTaskService
+@inject IConfiguration Configuration
 
 @page "/Create"
 
@@ -8,6 +10,8 @@
 <div class="container">
 
     <h1 class="form-title">CREATE TASK</h1>
+
+    <img src="img/upload.png" alt="Refresh" class="btn-upload" @onclick="LoadTask" />
 
     <EditForm Model="@createModel" OnValidSubmit="@CreateTask">
         <DataAnnotationsValidator />
@@ -44,6 +48,7 @@
 @code {
     private string? token = "";
     private string errorMessage = string.Empty;
+	private string baseUrl = string.Empty;
 
     private CreateModelViewData createModel = new CreateModelViewData();
 
@@ -64,7 +69,8 @@
                 Navigation.NavigateTo("/Login");
             }
 
-            string url = "https://taskmanagerapi-byjordy.somee.com/Task/create";
+			baseUrl = Configuration["ApiSettings:BaseUrl"]!;
+            string url = $"{baseUrl}/Task/create";
 
             using (var client = new HttpClient())
             {
@@ -88,5 +94,29 @@
             errorMessage = $"An error occurred: {ex.Message}";
             Console.WriteLine($"Error: {ex.Message}");
         }
+    }
+
+    private async Task LoadTask()
+    {
+        try
+        {
+            var task = await LoadTaskService.LoadTask();
+
+            if (task != null)
+            {
+				createModel = new CreateModelViewData
+					{
+						Title = task.Title,
+						Description = task.Description,
+						Priority = task.Priority,
+						DueDate = task.DueDate
+					};
+            }
+        }
+		catch (Exception ex)
+		{
+			errorMessage = $"An error occurred: {ex.Message}";
+			Console.WriteLine($"Error: {ex.Message}");
+		}
     }
 }

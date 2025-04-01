@@ -61,6 +61,14 @@
     </ItemGroup>
 
     <ItemGroup>
+      <MauiAsset Remove="Resources\Raw\appsettings.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="Resources\Raw\appsettings.json" />
+    </ItemGroup>
+
+    <ItemGroup>
       <None Include="wwwroot\css\personalized.css" />
     </ItemGroup>
 
@@ -69,6 +77,7 @@
         <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+        <PackageReference Include="Plugin.BLE" Version="3.1.0" />
     </ItemGroup>
 
 </Project>

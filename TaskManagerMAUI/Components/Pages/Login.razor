@@ -1,8 +1,6 @@
-﻿@using System.Text
-@using System.Net.Http.Headers
-
-@inject NavigationManager Navigation
+﻿@inject NavigationManager Navigation
 @inject ITokenService TokenService
+@inject IConfiguration Configuration
 
 @page "/"
 
@@ -41,11 +39,14 @@
 
 @code {
     private LoginModelViewData loginModel = new LoginModelViewData();
-	private string errorMessage = string.Empty;
+    private string errorMessage = string.Empty;
+    private string baseUrl = string.Empty;
 
     private async Task Authenticate()
     {
-        string url = "https://taskmanagerapi-byjordy.somee.com/api/User/login";
+        baseUrl = Configuration["ApiSettings:BaseUrl"]!;
+
+        string url = $"{baseUrl}/api/User/login";
 
         try
         {
